@@ -1,14 +1,13 @@
 const path = require('path')
-const buble = require('rollup-plugin-buble')
-const alias = require('rollup-plugin-alias')
-const cjs = require('rollup-plugin-commonjs')
-const replace = require('rollup-plugin-replace')
-const node = require('rollup-plugin-node-resolve')
-const flow = require('rollup-plugin-flow-no-whitespace')
+const buble = require('rollup-plugin-buble') //ES6+代码编译成ES2015标准
+const alias = require('rollup-plugin-alias') //alias插件提供了为模块起别名的功能
+const cjs = require('rollup-plugin-commonjs') //将 commonjs 模块转成 es6 模块
+const replace = require('rollup-plugin-replace')// 本质上是一个用来查找和替换的工具。它可以做很多事，但对我们来说只需要找到目前的环境变量并用实际值来替代
+const node = require('rollup-plugin-node-resolve')// 在打包第三方模块的过程中，rollup无法直接解析npm模块，因此需要引入插件rollup-plugin-node-resolve并配合之前的commonjs插件来解析这些第三方模块
+const flow = require('rollup-plugin-flow-no-whitespace')// 插件用来去掉flow使用的类型检查代码
 const version = process.env.VERSION || require('../package.json').version
 const weexVersion = process.env.WEEX_VERSION || require('../packages/weex-vue-framework/package.json').version
 const featureFlags = require('./feature-flags')
-
 const banner =
   '/*!\n' +
   ` * Vue.js v${version}\n` +
@@ -25,10 +24,20 @@ const weexFactoryPlugin = {
   }
 }
 
-const aliases = require('./alias')
+const aliases = require('./alias') // alias是对文件真实路径的一个映射
+/*
+eg:p:web/entry-runtime.js   
+   base:web
+   p.slice(base.length + 1):entry-runtime.js  
+   aliases[base]:/Users/yulang/Documents/vue/demo/vue-1/src/platforms/weex
+   path.resolve(aliases[base], p.slice(base.length + 1)):
+   /Users/yulang/Documents/vue/demo/vue-1/src/platforms/weex/entry-runtime.js  
+*/
+
 const resolve = p => {
-  const base = p.split('/')[0]
-  if (aliases[base]) {
+  //  获取第一个斜杠前的字符串 eg:p:web/entry-runtime.js   base:web
+  const base = p.split('/')[0] 
+  if (aliases[base]) { //如果匹配到aliases的key值
     return path.resolve(aliases[base], p.slice(base.length + 1))
   } else {
     return path.resolve(__dirname, '../', p)
@@ -37,6 +46,7 @@ const resolve = p => {
 
 const builds = {
   // Runtime only (CommonJS). Used by bundlers e.g. Webpack & Browserify
+  
   'web-runtime-cjs-dev': {
     entry: resolve('web/entry-runtime.js'),
     dest: resolve('dist/vue.runtime.common.dev.js'),
@@ -214,7 +224,17 @@ const builds = {
 }
 
 function genConfig (name) {
-  const opts = builds[name]
+  const opts = builds[name]// builds中对应的每一项
+
+  /*  
+   *  入口文件 input
+   *  引入第三方模块： external为rollup设置外部模块和全局变量
+   *  format 打包文件模式
+   *  plugins:第三方插件
+   *   alies:设置别名，比如将 src 目录设置别名为 @；
+   *  output:输出文件
+   *  onwarn 拦截警告信息
+   */
   const config = {
     input: opts.entry,
     external: opts.external,
@@ -267,5 +287,23 @@ if (process.env.TARGET) {
   module.exports = genConfig(process.env.TARGET)
 } else {
   exports.getBuild = genConfig
+  // 循环遍历builds对象输出key值，将key值组成的数组传入genConfig函数
   exports.getAllBuilds = () => Object.keys(builds).map(genConfig)
 }
+
+
+/*
+rollup-plugin-buble
+  @rollup/plugin-buble 模块是rollup的ES6编译插件
+功能和babel类似，是简化版的babel
+由于是简化版，编译速度比babel快一些
+对于其他复杂的ES6+的语法使用，后续再讲讲其他扩展插件
+
+rollup-plugin-alias
+用来配置打包过程中各个模块的路径映射，具体的配置写在 build/alias.js 中。
+这样代码中就可以用src作为根目录引用模块了。值得注意的是，src/platforms 目录下的
+ web 模块和 weex 模块，也都做了映射，所以在看代码时有 import xxx from ‘web/xxx’的引用
+ ，就都是从 platforms 下引用的。貌似这是缩短引用路径、区分目录结构和代码逻辑的好方法呢，
+ 实际开发中也可以借鉴。
+ * 
+ */

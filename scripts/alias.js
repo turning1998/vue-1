@@ -12,3 +12,17 @@ module.exports = {
   server: resolve('src/server'),
   sfc: resolve('src/sfc')
 }
+
+/*
+ *
+ {
+  vue: '/Users/Documents/vue/demo/vue-1/src/platforms/web/entry-runtime-with-compiler',
+  compiler: '/Users/Documents/vue/demo/vue-1/src/compiler',
+  core: '/Users/Documents/vue/demo/vue-1/src/core',
+  shared: '/Users/Documents/vue/demo/vue-1/src/shared',
+  web: '/Users/Documents/vue/demo/vue-1/src/platforms/web',
+  weex: '/Users/Documents/vue/demo/vue-1/src/platforms/weex',
+  server: '/Users/Documents/vue/demo/vue-1/src/server',
+  sfc: '/Users/Documents/vue/demo/vue-1/src/sfc'
+}
+ */

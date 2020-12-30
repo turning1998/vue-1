@@ -1,5 +1,5 @@
 /* @flow */
-
+// 响应式数据相关
 import Dep from './dep'
 import VNode from '../vdom/vnode'
 import { arrayMethods } from './array'

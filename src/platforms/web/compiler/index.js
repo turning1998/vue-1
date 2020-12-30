@@ -1,5 +1,5 @@
 /* @flow */
-
+// 平台相关的编译
 import { baseOptions } from './options'
 import { createCompiler } from 'compiler/index'
 

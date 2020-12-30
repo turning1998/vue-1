@@ -1,5 +1,5 @@
 /* @flow */
-
+// 平台相关的运行时的代码
 import Vue from 'core/index'
 import config from 'core/config'
 import { extend, noop } from 'shared/util'

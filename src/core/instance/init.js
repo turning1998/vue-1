@@ -1,5 +1,5 @@
 /* @flow */
-
+// 初始化
 import config from '../config'
 import { initProxy } from './proxy'
 import { initState } from './state'

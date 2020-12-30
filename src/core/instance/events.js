@@ -1,5 +1,5 @@
 /* @flow */
-
+// 事件
 import {
   tip,
   toArray,
