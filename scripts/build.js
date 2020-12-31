@@ -8,9 +8,6 @@ const terser = require('terser')
 if (!fs.existsSync('dist')) { //以同步方式判断dist目录是否存在 ture存在 false不存在
   fs.mkdirSync('dist') //不存在创建dist目录
 }
-// process.on('exit',(code)=>{
-//   console.log(code+'退出')
-// })
 // 引入./config中的文件，然后执行这个文件下的getAllBuilds()方法
 let builds = require('./config').getAllBuilds()
 // 通过命令行参数构建过滤器
@@ -30,7 +27,7 @@ if (process.argv[2]) {  //主要针对build：ssr和week形式的
 //综上所述，主要是对builds中的值进行过滤操作
 build(builds)
 
-function build (builds) {////  对拿到的builds进行一个简单的遍历
+function build (builds) {//  对拿到的builds进行一个简单的遍历
   let built = 0
   const total = builds.length
   const next = () => {
@@ -45,15 +42,17 @@ function build (builds) {////  对拿到的builds进行一个简单的遍历
   next()
 }
 
-function buildEntry (config) { // // 真正开始通过rollup对其进行编译
+function buildEntry (config) {    // 真正开始通过rollup对其进行编译
   const output = config.output
-  const { file, banner } = output
-  const isProd = /(min|prod)\.js$/.test(file)// // 匹配min.js结尾的文件
+  // file 打包文件的绝对路径   banner 头部注释
+  const { file, banner } = output  
+  const isProd = /(min|prod)\.js$/.test(file)   // 匹配min或者prod.js结尾的文件
   return rollup.rollup(config)
     .then(bundle => bundle.generate(output))
     .then(({ output: [{ code }] }) => {
       if (isProd) {
-        const minified = (banner ? banner + '\n' : '') + terser.minify(code, {// // 判断生成的js是否需要压缩
+        // // 判断生成的js是否需要压缩
+        const minified = (banner ? banner + '\n' : '') + terser.minify(code, {
           toplevel: true,
           output: {
             ascii_only: true
@@ -71,7 +70,7 @@ function buildEntry (config) { // // 真正开始通过rollup对其进行编译
 
 function write (dest, code, zip) {
   return new Promise((resolve, reject) => {
-    function report (extra) {////  必要的时候，在文件中加入console.log
+    function report (extra) {// 必要的时候，在文件中加入console.log
       console.log(blue(path.relative(process.cwd(), dest)) + ' ' + getSize(code) + (extra || ''))
       resolve()
     }
@@ -79,6 +78,7 @@ function write (dest, code, zip) {
     fs.writeFile(dest, code, err => {
       if (err) return reject(err)
       if (zip) {
+        // 压缩
         zlib.gzip(code, (err, zipped) => {
           if (err) return reject(err)
           report(' (gzipped: ' + getSize(zipped) + ')')
@@ -90,14 +90,16 @@ function write (dest, code, zip) {
   })
 }
 
+//获取文件大小
 function getSize (code) {
   return (code.length / 1024).toFixed(2) + 'kb'
 }
-
+//错误处理
 function logError (e) {
   console.log(e)
 }
-
+//输出高亮
 function blue (str) {
   return '\x1b[1m\x1b[34m' + str + '\x1b[39m\x1b[22m'
+  
 }

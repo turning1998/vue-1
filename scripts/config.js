@@ -1,8 +1,17 @@
+/*
+ * fs模块：Node.js内置模块，用于本地文件系统处理；
+ * path模块：Node.js内置模块，用于本地路径解析；
+ * buble模块：用于ES6+语法编译
+ * flow模块：用于Javascript源码静态检查；
+ * zlib模块：Node.js内置模块，用于使用gzip算法进行文件压缩；
+ * terser模块：用于Javascript代码压缩和美化。
+ * 
+*/
 const path = require('path')
-const buble = require('rollup-plugin-buble') //ES6+代码编译成ES2015标准
-const alias = require('rollup-plugin-alias') //alias插件提供了为模块起别名的功能
-const cjs = require('rollup-plugin-commonjs') //将 commonjs 模块转成 es6 模块
-const replace = require('rollup-plugin-replace')// 本质上是一个用来查找和替换的工具。它可以做很多事，但对我们来说只需要找到目前的环境变量并用实际值来替代
+const buble = require('rollup-plugin-buble') //编译ES6+语法为ES2015，无需配置，比babel更轻量；
+const alias = require('rollup-plugin-alias') //替换模块路径中的别名
+const cjs = require('rollup-plugin-commonjs') //支持CommonJS模块；
+const replace = require('rollup-plugin-replace')// 替换代码中的变量为指定值
 const node = require('rollup-plugin-node-resolve')// 在打包第三方模块的过程中，rollup无法直接解析npm模块，因此需要引入插件rollup-plugin-node-resolve并配合之前的commonjs插件来解析这些第三方模块
 const flow = require('rollup-plugin-flow-no-whitespace')// 插件用来去掉flow使用的类型检查代码
 const version = process.env.VERSION || require('../package.json').version
@@ -15,6 +24,7 @@ const banner =
   ' * Released under the MIT License.\n' +
   ' */'
 
+// 在代码块内添加代码注释。
 const weexFactoryPlugin = {
   intro () {
     return 'module.exports = function weexFactory (exports, document) {'
@@ -43,7 +53,7 @@ const resolve = p => {
     return path.resolve(__dirname, '../', p)
   }
 }
-
+console.log(resolve('web/entry-runtime.js'))
 const builds = {
   // Runtime only (CommonJS). Used by bundlers e.g. Webpack & Browserify
   
@@ -222,10 +232,6 @@ const builds = {
     external: Object.keys(require('../packages/weex-template-compiler/package.json').dependencies)
   }
 }
-
-function genConfig (name) {
-  const opts = builds[name]// builds中对应的每一项
-
   /*  
    *  入口文件 input
    *  引入第三方模块： external为rollup设置外部模块和全局变量
@@ -235,6 +241,8 @@ function genConfig (name) {
    *  output:输出文件
    *  onwarn 拦截警告信息
    */
+function genConfig (name) {
+  const opts = builds[name]// builds中对应的每一项
   const config = {
     input: opts.entry,
     external: opts.external,
@@ -257,24 +265,25 @@ function genConfig (name) {
 
   // built-in vars
   const vars = {
-    __WEEX__: !!opts.weex,
-    __WEEX_VERSION__: weexVersion,
-    __VERSION__: version
+    __WEEX__: !!opts.weex, // 是否是weex
+    __WEEX_VERSION__: weexVersion, //weex版本
+    __VERSION__: version //package.json版本
   }
   // feature flags
+  // 功能标志
   Object.keys(featureFlags).forEach(key => {
     vars[`process.env.${key}`] = featureFlags[key]
   })
-  // build-specific env
-  if (opts.env) {
-    vars['process.env.NODE_ENV'] = JSON.stringify(opts.env)
+   //是否要区分环境  区分 就是值赋值给vars['process.env.NODE_ENV']
+  if (opts.env) {  
+    vars['process.env.NODE_ENV'] = JSON.stringify(opts.env)  
   }
   config.plugins.push(replace(vars))
-
+  // 除了esm-browser  其它都要添加buble插件 将ES6+代码编译成ES2015标准
   if (opts.transpile !== false) {
     config.plugins.push(buble())
   }
-
+// Object.defineProperty()的作用就是直接在一个对象上定义一个新属性，或者修改一个已经存在的属性
   Object.defineProperty(config, '_name', {
     enumerable: false,
     value: name

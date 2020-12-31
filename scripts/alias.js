@@ -1,7 +1,5 @@
 const path = require('path')
-
 const resolve = p => path.resolve(__dirname, '../', p)
-
 module.exports = {
   vue: resolve('src/platforms/web/entry-runtime-with-compiler'),
   compiler: resolve('src/compiler'),
@@ -12,7 +10,6 @@ module.exports = {
   server: resolve('src/server'),
   sfc: resolve('src/sfc')
 }
-
 /*
  *
  {
