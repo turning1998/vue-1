@@ -13,7 +13,7 @@ let builds = require('./config').getAllBuilds()
 // 通过命令行参数构建过滤器
 //process 是一个全局变量 它提供当前node.js进程相关的信息，以及控制当前nodejs进程
 // 因为是全局变量 无需使用require()引入
-if (process.argv[2]) {  //主要针对build：ssr和week形式的
+if (process.argv[2]) {  //主要针对build：ssr和weex形式的
   const filters = process.argv[2].split(',')
   builds = builds.filter(b => {
     return filters.some(f => b.output.file.indexOf(f) > -1 || b._name.indexOf(f) > -1)
@@ -30,6 +30,8 @@ build(builds)
 function build (builds) {//  对拿到的builds进行一个简单的遍历
   let built = 0
   const total = builds.length
+  console.log('---')
+  console.log(builds.length)
   const next = () => {
     buildEntry(builds[built]).then(() => { //  builds数组从0到最后一个元素执行buildEntry方法
       built++

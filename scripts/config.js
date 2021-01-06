@@ -5,7 +5,6 @@
  * flow模块：用于Javascript源码静态检查；
  * zlib模块：Node.js内置模块，用于使用gzip算法进行文件压缩；
  * terser模块：用于Javascript代码压缩和美化。
- * 
 */
 const path = require('path')
 const buble = require('rollup-plugin-buble') //编译ES6+语法为ES2015，无需配置，比babel更轻量；
@@ -14,9 +13,11 @@ const cjs = require('rollup-plugin-commonjs') //支持CommonJS模块；
 const replace = require('rollup-plugin-replace')// 替换代码中的变量为指定值
 const node = require('rollup-plugin-node-resolve')// 在打包第三方模块的过程中，rollup无法直接解析npm模块，因此需要引入插件rollup-plugin-node-resolve并配合之前的commonjs插件来解析这些第三方模块
 const flow = require('rollup-plugin-flow-no-whitespace')// 插件用来去掉flow使用的类型检查代码
+// 从package.json中获取Vue的版本号和Weex的版本号。
 const version = process.env.VERSION || require('../package.json').version
 const weexVersion = process.env.WEEX_VERSION || require('../packages/weex-vue-framework/package.json').version
 const featureFlags = require('./feature-flags')
+// 生成了banner文本，在Vue代码打包后，会写在文件顶部。
 const banner =
   '/*!\n' +
   ` * Vue.js v${version}\n` +
@@ -24,7 +25,7 @@ const banner =
   ' * Released under the MIT License.\n' +
   ' */'
 
-// 在代码块内添加代码注释。
+// 仅用于打包weex-factory源码时使用
 const weexFactoryPlugin = {
   intro () {
     return 'module.exports = function weexFactory (exports, document) {'
@@ -33,8 +34,8 @@ const weexFactoryPlugin = {
     return '}'
   }
 }
-
-const aliases = require('./alias') // alias是对文件真实路径的一个映射
+// alias模块输出一个对象 这个对象定义了所有的别名及其对应的绝对路径
+const aliases = require('./alias') 
 /*
 eg:p:web/entry-runtime.js   
    base:web
@@ -44,16 +45,19 @@ eg:p:web/entry-runtime.js
    /Users/yulang/Documents/vue/demo/vue-1/src/platforms/weex/entry-runtime.js  
 */
 
+
 const resolve = p => {
   //  获取第一个斜杠前的字符串 eg:p:web/entry-runtime.js   base:web
-  const base = p.split('/')[0] 
-  if (aliases[base]) { //如果匹配到aliases的key值
+  const base = p.split('/')[0] // 获取路径的别名
+  if (aliases[base]) { //// 查找别名是否存在     如果匹配到aliases的key值
+   // 如果别名存在，则将别名对应的路径与文件名进行合并
     return path.resolve(aliases[base], p.slice(base.length + 1))
   } else {
+      // 如果别名不存在，则将项目根路径与传入路径进行合并
     return path.resolve(__dirname, '../', p)
   }
 }
-console.log(resolve('web/entry-runtime.js'))
+
 const builds = {
   // Runtime only (CommonJS). Used by bundlers e.g. Webpack & Browserify
   
