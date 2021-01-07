@@ -1,5 +1,5 @@
 /* @flow */
-
+// 渲染相关  其中最值得关注的是Vue.prototype._render渲染函数定义
 import {
   warn,
   nextTick,

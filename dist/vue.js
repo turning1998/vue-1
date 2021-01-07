@@ -4955,7 +4955,7 @@
   /*  */
 
   var uid$2 = 0;
-
+  // vue 原型上挂载_init方法
   function initMixin (Vue) {
     Vue.prototype._init = function (options) {
       var vm = this;
@@ -4972,7 +4972,7 @@
 
       // a flag to avoid this being observed
       vm._isVue = true;
-      // merge options
+      // 合并options 
       if (options && options._isComponent) {
         // optimize internal component instantiation
         // since dynamic options merging is pretty slow, and none of the
@@ -5006,7 +5006,8 @@
         mark(endTag);
         measure(("vue " + (vm._name) + " init"), startTag, endTag);
       }
-
+     //检测到如果有el属性 则调用vm.$mount方法挂载vm
+     // 挂载的目标就是把模板渲染成最终的DOM
       if (vm.$options.el) {
         vm.$mount(vm.$options.el);
       }
@@ -5069,15 +5070,26 @@
     return modified
   }
 
+  // VUE第一步：向vue上挂载许多原型方法和静态方法 
+  // vue 的定义
+
+  /*vue的定义
+   *  vue 必须通过new的方式 实例化
+   *  vue未使用es6的方式【class】而是使用function的方法实现
+   *  es6实现向vue上挂一些原型方法比较难写；
+   *  而使用es5向vue原型上挂载方法 并且可以把这些方法拆分到不同到文件下【eg init state...】
+   * 方便代码管理
+   * 
+  */
   function Vue (options) {
-    if (
-      !(this instanceof Vue)
-    ) {
+
+    if (!(this instanceof Vue)) {
       warn('Vue is a constructor and should be called with the `new` keyword');
     }
+    // VUE  原型上的方法
     this._init(options);
   }
-
+  // mixin就是向vue上挂一些原型方法
   initMixin(Vue);
   stateMixin(Vue);
   eventsMixin(Vue);
@@ -5387,10 +5399,8 @@
       };
     }
     Object.defineProperty(Vue, 'config', configDef);
-
-    // exposed util methods.
-    // NOTE: these are not considered part of the public API - avoid relying on
-    // them unless you are aware of the risk.
+   
+    //util方法 不建议使用 因为不稳定
     Vue.util = {
       warn: warn,
       extend: extend,
@@ -5407,25 +5417,25 @@
       observe(obj);
       return obj
     };
-
+    // ASSET_TYPES 定义了全局的components directive filters 方法
     Vue.options = Object.create(null);
     ASSET_TYPES.forEach(function (type) {
       Vue.options[type + 's'] = Object.create(null);
     });
 
-    // this is used to identify the "base" constructor to extend all plain-object
-    // components with in Weex's multi-instance scenarios.
+   //用于标识扩展所有纯对象的"base"构造函数  在Weex的多实例场景中使用组件。
     Vue.options._base = Vue;
-
+  // builtInComponents 内置组件 通过extend 扩展到vue.options.components下
     extend(Vue.options.components, builtInComponents);
 
-    initUse(Vue);
-    initMixin$1(Vue);
-    initExtend(Vue);
-    initAssetRegisters(Vue);
+    initUse(Vue);  //创建了use的全局方法
+    initMixin$1(Vue); //全局mixin方法
+    initExtend(Vue);  //全局extend方法
+    initAssetRegisters(Vue); //全局方法
   }
 
-  initGlobalAPI(Vue);
+  // 向vue向挂载全局方法【静态属性】
+  initGlobalAPI(Vue); 
 
   Object.defineProperty(Vue.prototype, '$isServer', {
     get: isServerRendering

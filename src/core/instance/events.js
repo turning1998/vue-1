@@ -1,5 +1,5 @@
 /* @flow */
-// 事件
+// 事件处理相关 比如$on,$off,$emit 以及¥once等方法的实现
 import {
   tip,
   toArray,

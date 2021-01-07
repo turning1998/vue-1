@@ -1,5 +1,5 @@
 /* @flow */
-
+// inject和provide相关
 import { hasOwn } from 'shared/util'
 import { warn, hasSymbol } from '../util/index'
 import { defineReactive, toggleObserving } from '../observer/index'

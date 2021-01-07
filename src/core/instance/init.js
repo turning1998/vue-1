@@ -1,5 +1,5 @@
 /* @flow */
-// 初始化
+// 初始化 _init等方法相关  包含了vue从创建实例挂载阶段的所有主要逻辑
 import config from '../config'
 import { initProxy } from './proxy'
 import { initState } from './state'
@@ -15,56 +15,63 @@ let uid = 0
 export function initMixin (Vue: Class<Component>) {
   Vue.prototype._init = function (options?: Object) {
     const vm: Component = this
-    // a uid
+    // 1.每个vue的实例上都有一个唯一的属性_uid
     vm._uid = uid++
-
     let startTag, endTag
-    /* istanbul ignore if */
     if (process.env.NODE_ENV !== 'production' && config.performance && mark) {
       startTag = `vue-perf-start:${vm._uid}`
       endTag = `vue-perf-end:${vm._uid}`
       mark(startTag)
     }
-
-    // a flag to avoid this being observed
+  //  2.表示是vue实例
     vm._isVue = true
-    // merge options
+    // 3.合并配置
     if (options && options._isComponent) {
-      // optimize internal component instantiation
-      // since dynamic options merging is pretty slow, and none of the
-      // internal component options needs special treatment.
       initInternalComponent(vm, options)
     } else {
+      /*
+        这里把我们传入的options最后都合并到$options上
+        例如，vm.$options.el 其实就是 new Vue({
+        el: 这里的el
+        data: vm.$options.data
+        })
+       */
       vm.$options = mergeOptions(
         resolveConstructorOptions(vm.constructor),
         options || {},
         vm
       )
     }
-    /* istanbul ignore else */
+    /* 2.render代理 */
     if (process.env.NODE_ENV !== 'production') {
       initProxy(vm)
     } else {
       vm._renderProxy = vm
     }
-    // expose real self
+    // 4.初始化生命周期 初始化事件中心 初始化inject  
+    // 初始化state 初始化provide 调用生命周期
     vm._self = vm
-    initLifecycle(vm)
-    initEvents(vm)
-    initRender(vm)
-    callHook(vm, 'beforeCreate')
-    initInjections(vm) // resolve injections before data/props
-    initState(vm)
-    initProvide(vm) // resolve provide after data/props
-    callHook(vm, 'created')
-
-    /* istanbul ignore if */
+    initLifecycle(vm)//初始化生命周期
+    initEvents(vm) //初始化事件
+    initRender(vm) //初始化render方法
+    callHook(vm, 'beforeCreate')  // 调用beforeCreate钩子函数
+    initInjections(vm)  // 初始化inject
+    initState(vm)//  // 初始化props、methods、data、computed与watch
+    initProvide(vm) // // 初始化provide
+    callHook(vm, 'created')// // 调用created钩子函数
     if (process.env.NODE_ENV !== 'production' && config.performance && mark) {
+     // 格式化组件名
       vm._name = formatComponentName(vm, false)
       mark(endTag)
       measure(`vue ${vm._name} init`, startTag, endTag)
     }
-
+   //检测到如果有el属性 则调用vm.$mount方法挂载vm
+   // 挂载的目标就是把模板渲染成最终的DOM
+     /*
+        在$mount之后转化为DOM对象
+        这个函数执行完，dom会立刻发生变化
+        通俗点说，就是挂载组件
+       */
     if (vm.$options.el) {
       vm.$mount(vm.$options.el)
     }

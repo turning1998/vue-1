@@ -1,5 +1,5 @@
 /* @flow */
-
+// 挂载mixin
 import { mergeOptions } from '../util/index'
 
 export function initMixin (Vue: GlobalAPI) {

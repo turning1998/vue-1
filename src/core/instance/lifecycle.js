@@ -1,5 +1,5 @@
 /* @flow */
-// 生命周期
+// 生命周期相关 eg:$destroy $activated 和¥deactivated
 import config from '../config'
 import Watcher from '../observer/watcher'
 import { mark, measure } from '../util/perf'

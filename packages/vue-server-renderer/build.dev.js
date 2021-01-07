@@ -1644,7 +1644,7 @@ function mergeOptions (
     child = child.options;
   }
 
-  normalizeProps(child, vm);
+  normalizeProps(child, vm); //props属性名驼峰化
   normalizeInject(child, vm);
   normalizeDirectives(child);
 

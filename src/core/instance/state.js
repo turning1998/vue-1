@@ -1,5 +1,5 @@
 /* @flow */
-
+// 数据状态相关 比如 data props computed
 import config from '../config'
 import Watcher from '../observer/watcher'
 import Dep, { pushTarget, popTarget } from '../observer/dep'
@@ -34,28 +34,42 @@ const sharedPropertyDefinition = {
   get: noop,
   set: noop
 }
+// // 参数对应initData()中的proxy(vm, `_data`, key)
+// 当我们去访问vm.data的时候，实际上就会去访问this[sourceKey][key], 等同于vm._data.key。
+// 所以说，proxy实际上就是将数据代理到我们的vm上，让我们可以通过this._data.key访问，
+// 也可以通过this.key这种方式访问。
+// ❗️不建议使用_data这种方式，因为在js的世界中，带_的变量默认都是私有的。
 
 export function proxy (target: Object, sourceKey: string, key: string) {
+  // 定义get、set方法。
   sharedPropertyDefinition.get = function proxyGetter () {
+    
     return this[sourceKey][key]
   }
   sharedPropertyDefinition.set = function proxySetter (val) {
     this[sourceKey][key] = val
   }
+  /* 
+    通过Object.defineProperty对target.key的访问增加了get和set
+    target其实就是传入的vm, 所以vm.key.get就会执行proxyGetter()
+   */
   Object.defineProperty(target, key, sharedPropertyDefinition)
 }
 
 export function initState (vm: Component) {
   vm._watchers = []
   const opts = vm.$options
-  if (opts.props) initProps(vm, opts.props)
-  if (opts.methods) initMethods(vm, opts.methods)
-  if (opts.data) {
+  if (opts.props) initProps(vm, opts.props)//// 判断options，如果定义了props，就会初始化props
+  if (opts.methods) initMethods(vm, opts.methods)// 判断methods，如果定义了methods，就会初始化methods
+  if (opts.data) {   // 判断data，如果定义了data，就会初始化data
     initData(vm)
   } else {
+     // 没有data的时候绑定一个空对象
     observe(vm._data = {}, true /* asRootData */)
   }
+  // 初始化computed
   if (opts.computed) initComputed(vm, opts.computed)
+   // 初始化watcher
   if (opts.watch && opts.watch !== nativeWatch) {
     initWatch(vm, opts.watch)
   }
@@ -108,12 +122,16 @@ function initProps (vm: Component, propsOptions: Object) {
   }
   toggleObserving(true)
 }
-
+// 在initData()中，我们使用一个循环判断了是否使用了重复的键名，假如data里使用了msg这个字段, 
+// 那么props里或methods里等等就不可以再用了。不能使用重复的键名是因为无论是data、props、还是methods等，
+// 最终都会挂载到vm实例上，一个实例上拥有重复的key显然是不正确的。
 function initData (vm: Component) {
   let data = vm.$options.data
+  //判断是不是function，并赋值给了vm._data
   data = vm._data = typeof data === 'function'
     ? getData(data, vm)
     : data || {}
+    // // 判断data是否非对象，如果非对象就返回警告
   if (!isPlainObject(data)) {
     data = {}
     process.env.NODE_ENV !== 'production' && warn(
@@ -122,14 +140,16 @@ function initData (vm: Component) {
       vm
     )
   }
-  // proxy data on instance
+  //  // 遍历data对象
   const keys = Object.keys(data)
   const props = vm.$options.props
   const methods = vm.$options.methods
   let i = keys.length
   while (i--) {
+     // 遍历data中的keys
     const key = keys[i]
     if (process.env.NODE_ENV !== 'production') {
+          // 保证不与props与methods里的key重复，如果有重复则爆出警告，这个警告我们应该都很熟悉
       if (methods && hasOwn(methods, key)) {
         warn(
           `Method "${key}" has already been defined as a data property.`,
@@ -144,6 +164,8 @@ function initData (vm: Component) {
         vm
       )
     } else if (!isReserved(key)) {
+       // 判断是否是非保留字段
+      // 能在vue里可以使用this互相调用data或者methods等等，就是通过这个代理
       proxy(vm, `_data`, key)
     }
   }

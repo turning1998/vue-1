@@ -1,5 +1,5 @@
 /* @flow */
-
+// 挂载use方法
 import { toArray } from '../util/index'
 
 export function initUse (Vue: GlobalAPI) {

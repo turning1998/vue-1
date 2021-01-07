@@ -1,5 +1,5 @@
 /* @flow */
-
+// 挂载filter  component和directive
 import { ASSET_TYPES } from 'shared/constants'
 import { isPlainObject, validateComponentName } from '../util/index'
 
